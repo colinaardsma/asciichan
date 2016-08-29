@@ -10,8 +10,10 @@ handlers:
   upload: favicon\.ico
 
 - url: .*
-  script: main.app
+  script: asciichan.app
 
 libraries:
 - name: webapp2
-  version: "2.5.2"
+  version: latest
+- name: jinja2
+  version: latest
