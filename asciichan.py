@@ -1,7 +1,6 @@
-import os
-import webapp2
+import os, webapp2, urllib2
 import jinja2
-
+from xml.dom import minidom
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -18,6 +17,26 @@ class Handler(webapp2.RequestHandler):
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
+
+IP_URL = "http://api.hostip.info/?ip="
+def get_coords(ip):
+    url = IP_URL + ip
+    content = None
+    try:
+        content = urllin2.urlopen(url).read()
+    except URLError:
+        return
+
+    if content:
+        #parse xml and find coordinates
+        p = minidom.parseString(xml)
+        coords = p.getElementsByTagName('gml:coordinates')
+        if coords and coords[0].childNodes[0].nodeValue:
+            lon = coords[0].childNodes[0].nodeValue.split(",")[0]
+            lat = coords[0].childNodes[0].nodeValue.split(",")[1]
+            loc = lat + ", " + lon
+        print lat, lon
+        return lat, lon
 
 class Art(db.Model):
     title = db.StringProperty(required = True) #sets title to a string and makes it required
@@ -38,6 +57,8 @@ class MainPage(Handler):
 
         if title and art:
             a = Art(title = title, art = art) #creates new art object named a
+            #lookup user's coordinates from IP
+
             a.put() #stores a in database
             self.redirect("/") #sends you back to main page
         else:
