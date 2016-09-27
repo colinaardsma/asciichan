@@ -19,7 +19,9 @@
       <div class="error">{{error}}</div>
       <input type="submit" />
     </form>
-    {{mapUrl}}
+    {% if mapUrl %}
+      <img src="{{mapUrl}}" />
+    {% endif %}
     <hr>
     {% for art in arts %}
     <div class="art">

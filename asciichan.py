@@ -21,6 +21,8 @@ class Handler(webapp2.RequestHandler):
 IP_URL = "http://freegeoip.net/xml/"
 def get_coords(ip): #determines coordinates based on IP provided (doesn't work when running locally)
     ip = "4.2.2.2"
+    ip = "72.229.28.185"
+    ip = "134.201.250.155"
     url = IP_URL + ip
     content = None
     try:
@@ -35,6 +37,13 @@ def get_coords(ip): #determines coordinates based on IP provided (doesn't work w
         lon = p.getElementsByTagName('Longitude')[0].childNodes[0].nodeValue
         return db.GeoPt(lat, lon)
 
+def getMap(points):
+    mapUrl = "https://maps.googleapis.com/maps/api/staticmap?size=600x300"
+    if points:
+        for p in points:
+            marker = "&markers=" + str(p)
+            mapUrl += marker
+    return mapUrl
 
 class Art(db.Model):
     title = db.StringProperty(required = True) #sets title to a string and makes it required
@@ -47,14 +56,13 @@ class MainPage(Handler):
         arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC") #table is named Art because class is named Art (the class creates the table)
         arts = list(arts) #turns the db query above into a list object so that it doesnt run a new db search each time it is called
 
-        mapUrl = "https://maps.googleapis.com/maps/api/staticmap?size=600x300&maptype=roadmap"
+        points = [""]
+        for a in arts: #find which arts have coords
+            points.append(a.coords) #if we have any arts coords, make an image url
 
-        for art in arts: #find which arts have coords
-            if art.coords:  #if we have any arts coords, make an image url
-                marker = "&markers=" + str(art.coords)
-                mapUrl += marker
+        mapUrl = getMap(points)
 
-        #dsiplay the image url
+        #display the image url
         self.render("front.html", title=title, art=art, error=error, arts=arts, mapUrl=mapUrl)
 
     def get(self):
